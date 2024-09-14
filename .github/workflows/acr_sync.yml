@@ -44,7 +44,7 @@ jobs:
           image_tag=$(echo $image | awk -F'/' '{print $NF}')
           
           # Tag the image for ACR
-          acr_image="${{ secrets.ACR_REGISTRY }}/kenwood-ai/$image_tag"
+          acr_image="${{ secrets.ACR_REGISTRY }}/linjicong/$image_tag"
           echo "Tagging image: $acr_image"
           docker tag $image $acr_image
 
