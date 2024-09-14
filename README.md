@@ -52,3 +52,4 @@ GitHub Actions 工作流定义文件位于 `.github/workflows/sync-images.yml`�
 | docker.elastic.co/elasticsearch/elasticsearch:8.14.3 | registry.cn-hangzhou.aliyuncs.com/kenwood-ai/elasticsearch:8.14.3 |
 | docker.elastic.co/kibana/kibana:8.14.3          | registry.cn-hangzhou.aliyuncs.com/kenwood-ai/kibana:8.14.3 |
 | downloads.unstructured.io/unstructured-io/unstructured-api:latest | registry.cn-hangzhou.aliyuncs.com/kenwood-ai/unstructured-api:latest |
+
