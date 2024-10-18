@@ -33,7 +33,7 @@ GitHub Actions 工作流定义文件位于 `.github/workflows/sync-images.yml`�
 | langgenius/dify-web:0.9.2                       | registry.cn-hangzhou.aliyuncs.com/linjicong/dify-web:0.9.2     |
 | postgres:15-alpine                              | registry.cn-hangzhou.aliyuncs.com/linjicong/postgres:15-alpine  |
 | redis:6-alpine                                  | registry.cn-hangzhou.aliyuncs.com/linjicong/redis:6-alpine      |
-| langgenius/dify-sandbox:0.2.9                   | registry.cn-hangzhou.aliyuncs.com/linjicong/dify-sandbox:0.2.9 |
+| langgenius/dify-sandbox:0.2.10                   | registry.cn-hangzhou.aliyuncs.com/linjicong/dify-sandbox:0.2.10 |
 | ubuntu/squid:latest                             | registry.cn-hangzhou.aliyuncs.com/linjicong/squid:latest |
 | certbot/certbot                                 | registry.cn-hangzhou.aliyuncs.com/linjicong/certbot:latest |
 | nginx:latest                                    | registry.cn-hangzhou.aliyuncs.com/linjicong/nginx:latest        |
