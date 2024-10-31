@@ -38,7 +38,7 @@ jobs:
           echo "No images to process."
         else
           for image in $images; do
-            if [ -z image ]; then
+            if [ -z "image" ] || ["image" = "null"]; then
               echo "No images to process."
             else
               echo "Processing image: $image"
