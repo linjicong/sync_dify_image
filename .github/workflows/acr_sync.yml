@@ -38,33 +38,29 @@ jobs:
           echo "No images to process."
         else
           for image in $images; do
-            if [ -z "image" ] || ["image" = "null"]; then
-              echo "No images to process."
-            else
-              echo "Processing image: $image"
-              
-              # Pull the image from DockerHub
-              docker pull $image
-              
-              # Extract image tag (last part)
-              image_tag=$(echo $image | awk -F'/' '{print $NF}')
-              
-              # Tag the image for ACR
-              acr_image="${{ secrets.ACR_REGISTRY }}/linjicong/$image_tag"
-              echo "Tagging image: $acr_image"
-              docker tag $image $acr_image
-    
-              docker rmi $image
-              
-              # Push the image to ACR
-              if docker inspect $acr_image > /dev/null 2>&1; then
-                echo "Image $acr_image already exists in ACR, skipping push."
-              else
-                # Push the image to ACR
-                echo "Pushing image to ACR: $acr_image"
-                docker push $acr_image
-              fi
-              docker rmi $acr_image
+            if [ -z "$image" ] || [ "$image" = "null" ]; then
+              echo "Skipping empty or null image."
+              continue
             fi
+            echo "Processing image: $image"
+            
+            # Pull the image from DockerHub
+            docker pull $image
+            
+            # Extract image tag (last part)
+            image_tag=$(echo $image | awk -F'/' '{print $NF}')
+            
+            # Tag the image for ACR
+            acr_image="${{ secrets.ACR_REGISTRY }}/linjicong/$image_tag"
+            echo "Tagging image: $acr_image"
+            docker tag $image $acr_image
+  
+            docker rmi $image
+            
+            # Push the image to ACR
+            echo "Pushing image to ACR: $acr_image"
+            docker push $acr_image
+            
+            docker rmi $acr_image
           done
         fi
