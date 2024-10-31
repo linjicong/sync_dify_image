@@ -29,8 +29,8 @@ GitHub Actions 工作流定义文件位于 `.github/workflows/sync-images.yml`�
 
 | 源镜像                                          | 替换后镜像                                                     |
 |-------------------------------------------------|----------------------------------------------------------------|
-| langgenius/dify-api:0.10.0                       | registry.cn-hangzhou.aliyuncs.com/linjicong/dify-api:0.10.0     |
-| langgenius/dify-web:0.10.0                       | registry.cn-hangzhou.aliyuncs.com/linjicong/dify-web:0.10.0     |
+| langgenius/dify-api:0.10.2                       | registry.cn-hangzhou.aliyuncs.com/linjicong/dify-api:0.10.2     |
+| langgenius/dify-web:0.10.2                       | registry.cn-hangzhou.aliyuncs.com/linjicong/dify-web:0.10.2     |
 | postgres:15-alpine                              | registry.cn-hangzhou.aliyuncs.com/linjicong/postgres:15-alpine  |
 | redis:6-alpine                                  | registry.cn-hangzhou.aliyuncs.com/linjicong/redis:6-alpine      |
 | langgenius/dify-sandbox:0.2.10                   | registry.cn-hangzhou.aliyuncs.com/linjicong/dify-sandbox:0.2.10 |
@@ -42,6 +42,7 @@ GitHub Actions 工作流定义文件位于 `.github/workflows/sync-images.yml`�
 | pgvector/pgvector:pg16                          | registry.cn-hangzhou.aliyuncs.com/linjicong/pgvector:pg16 |
 | tensorchord/pgvecto-rs:pg16-v0.3.0              | registry.cn-hangzhou.aliyuncs.com/linjicong/pgvecto-rs:pg16-v0.3.0 |
 | ghcr.io/chroma-core/chroma:0.5.1                | registry.cn-hangzhou.aliyuncs.com/linjicong/chroma:0.5.1 |
+| quay.io/oceanbase/oceanbase-ce:4.3.3.0-100000142024101215  |  registry.cn-hangzhou.aliyuncs.com/linjicong/oceanbase-ce:4.3.3.0-100000142024101215 |
 | container-registry.oracle.com/database/free:latest | registry.cn-hangzhou.aliyuncs.com/linjicong/free:latest |
 | quay.io/coreos/etcd:v3.5.5                      | registry.cn-hangzhou.aliyuncs.com/linjicong/etcd:v3.5.5 |
 | minio/minio:RELEASE.2023-03-20T20-16-18Z        | registry.cn-hangzhou.aliyuncs.com/linjicong/minio:RELEASE.2023-03-20T20-16-18Z |
