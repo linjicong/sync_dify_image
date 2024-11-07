@@ -29,8 +29,8 @@ GitHub Actions 工作流定义文件位于 `.github/workflows/sync-images.yml`�
 
 | 源镜像                                          | 替换后镜像                                                     |
 |-------------------------------------------------|----------------------------------------------------------------|
-| langgenius/dify-api:0.10.2                       | registry.cn-hangzhou.aliyuncs.com/linjicong/dify-api:0.10.2     |
-| langgenius/dify-web:0.10.2                       | registry.cn-hangzhou.aliyuncs.com/linjicong/dify-web:0.10.2     |
+| langgenius/dify-api:0.11.0                       | registry.cn-hangzhou.aliyuncs.com/linjicong/dify-api:0.11.0     |
+| langgenius/dify-web:0.11.0                       | registry.cn-hangzhou.aliyuncs.com/linjicong/dify-web:0.11.0     |
 | postgres:15-alpine                              | registry.cn-hangzhou.aliyuncs.com/linjicong/postgres:15-alpine  |
 | redis:6-alpine                                  | registry.cn-hangzhou.aliyuncs.com/linjicong/redis:6-alpine      |
 | langgenius/dify-sandbox:0.2.10                   | registry.cn-hangzhou.aliyuncs.com/linjicong/dify-sandbox:0.2.10 |
@@ -50,6 +50,6 @@ GitHub Actions 工作流定义文件位于 `.github/workflows/sync-images.yml`�
 | opensearchproject/opensearch:latest             | registry.cn-hangzhou.aliyuncs.com/linjicong/opensearch:latest |
 | opensearchproject/opensearch-dashboards:latest  | registry.cn-hangzhou.aliyuncs.com/linjicong/opensearch-dashboards:latest |
 | myscale/myscaledb:1.6.4                         | registry.cn-hangzhou.aliyuncs.com/linjicong/myscaledb:1.6.4 |
-| docker.elastic.co/elasticsearch/elasticsearch:8.15.1 | registry.cn-hangzhou.aliyuncs.com/linjicong/elasticsearch:8.15.1 |
-| docker.elastic.co/kibana/kibana:8.15.1          | registry.cn-hangzhou.aliyuncs.com/linjicong/kibana:8.15.1 |
+| docker.elastic.co/elasticsearch/elasticsearch:8.14.3 | registry.cn-hangzhou.aliyuncs.com/linjicong/elasticsearch:8.14.3 |
+| docker.elastic.co/kibana/kibana:8.14.3          | registry.cn-hangzhou.aliyuncs.com/linjicong/kibana:8.14.3 |
 | downloads.unstructured.io/unstructured-io/unstructured-api:latest | registry.cn-hangzhou.aliyuncs.com/linjicong/unstructured-api:latest |
