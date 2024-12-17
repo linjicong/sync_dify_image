@@ -31,6 +31,14 @@ jobs:
     - name: Log in to Alibaba Cloud ACR
       run: echo "${{ secrets.ACR_PASSWORD }}" | docker login ${{ secrets.ACR_REGISTRY }} --username ${{ secrets.ACR_USERNAME }} --password-stdin
 
+    - name: Cache Docker images
+      uses: actions/cache@v2
+      with:
+        path: /tmp/docker-cache
+        key: ${{ runner.os }}-docker-${{ hashFiles('**/docker-compose.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-docker-
+
     - name: Pull and push images to Alibaba Cloud ACR
       run: |
         images="${{ steps.parse_docker_compose.outputs.images }}"
@@ -44,8 +52,16 @@ jobs:
             fi
             echo "Processing image: $image"
             
-            # Pull the image from DockerHub
-            docker pull $image
+            # Check if image is in cache
+            if [ -f /tmp/docker-cache/$(echo $image | sha256sum | cut -d' ' -f1).tar ]; then
+              echo "Restoring cached image: $image"
+              docker load -i /tmp/docker-cache/$(echo $image | sha256sum | cut -d' ' -f1).tar
+            else
+              echo "Pulling image from DockerHub: $image"
+              docker pull $image
+              echo "Saving image to cache: $image"
+              docker save $image > /tmp/docker-cache/$(echo $image | sha256sum | cut -d' ' -f1).tar
+            fi
             
             # Extract image tag (last part)
             image_tag=$(echo $image | awk -F'/' '{print $NF}')
