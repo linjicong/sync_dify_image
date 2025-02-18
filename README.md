@@ -29,11 +29,12 @@ GitHub Actions 工作流定义文件位于 `.github/workflows/sync-images.yml`�
 
 | 源镜像                                          | 替换后镜像                                                     |
 |-------------------------------------------------|----------------------------------------------------------------|
-| langgenius/dify-api:0.15.3                       | registry.cn-hangzhou.aliyuncs.com/linjicong/dify-api:0.15.3     |
-| langgenius/dify-web:0.15.3                     | registry.cn-hangzhou.aliyuncs.com/linjicong/dify-web:0.15.3    |
+| langgenius/dify-api:1.0.0                      | registry.cn-hangzhou.aliyuncs.com/linjicong/dify-api:1.0.0     |
+| langgenius/dify-web:1.0.0                     | registry.cn-hangzhou.aliyuncs.com/linjicong/dify-web:1.0.0    |
 | postgres:15-alpine                              | registry.cn-hangzhou.aliyuncs.com/linjicong/postgres:15-alpine  |
 | redis:6-alpine                                  | registry.cn-hangzhou.aliyuncs.com/linjicong/redis:6-alpine      |
 | langgenius/dify-sandbox:0.2.10                   | registry.cn-hangzhou.aliyuncs.com/linjicong/dify-sandbox:0.2.10 |
+| langgenius/dify-plugin-daemon:0.0.1-local        | registry.cn-hangzhou.aliyuncs.com/linjicong/dify-plugin-daemon:0.0.1-local |
 | ubuntu/squid:latest                             | registry.cn-hangzhou.aliyuncs.com/linjicong/squid:latest |
 | certbot/certbot                                 | registry.cn-hangzhou.aliyuncs.com/linjicong/certbot:latest |
 | nginx:latest                                    | registry.cn-hangzhou.aliyuncs.com/linjicong/nginx:latest        |
