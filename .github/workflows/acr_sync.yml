@@ -54,6 +54,11 @@ jobs:
               echo "Skipping empty or null image."
               continue
             fi
+            # 添加跳过vastdata/vastbase-vector镜像的条件
+            if [[ "$image" == vastdata/vastbase-vector* ]]; then
+              echo "Skipping image: $image"
+              continue
+            fi
             echo "Processing image: $image"
 
             # Generate a unique cache file name based on the image
