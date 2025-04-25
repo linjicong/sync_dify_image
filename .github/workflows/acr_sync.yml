@@ -15,7 +15,8 @@ jobs:
       with:
         repository: langgenius/dify
         path: dify-repo
-
+        tag: 1.3.0
+        
     - name: Install yq
       run: |
         sudo wget https://github.com/mikefarah/yq/releases/download/v4.27.3/yq_linux_amd64 -O /usr/bin/yq
