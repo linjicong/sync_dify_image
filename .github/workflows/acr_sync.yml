@@ -15,7 +15,7 @@ jobs:
       with:
         repository: langgenius/dify
         path: dify-repo
-        ref: 1.8.1
+        ref: 2.0.0-beta.2
         
     - name: Install yq
       run: |
