@@ -27,69 +27,65 @@ jobs:
       run: |
         images=$(yq e '.services[].image' dify-repo/docker/docker-compose.yaml | tr '\n' ' ')
         echo "Images: $images"
-        echo "::set-output name=images::$images"
+        echo "images_list=$images" >> $GITHUB_OUTPUT
 
     - name: Log in to Alibaba Cloud ACR
       run: echo "${{ secrets.ACR_PASSWORD }}" | docker login ${{ secrets.ACR_REGISTRY }} --username ${{ secrets.ACR_USERNAME }} --password-stdin
 
-    # - name: Set up cache directory
-    #   run: |
-    #     mkdir -p /tmp/docker-cache
-
-    # - name: Cache Docker images
-    #   uses: actions/cache@v2
-    #   with:
-    #     path: /tmp/docker-cache
-    #     key: ${{ runner.os }}-docker-${{ hashFiles('**/docker-compose.yaml') }}
-    #     restore-keys: |
-    #       ${{ runner.os }}-docker-
-
-    - name: Pull and push images to Alibaba Cloud ACR
+    - name: Install skopeo for image checking
       run: |
-        images="${{ steps.parse_docker_compose.outputs.images }}"
-        if [ -z $images ]; then
-          echo "No images to process."
-        else
-          for image in $images; do
-            if [ -z "$image" ] || [ "$image" = "null" ]; then
-              echo "Skipping empty or null image."
-              continue
-            fi
-            # 添加跳过vastdata/vastbase-vector镜像的条件
-            if [[ "$image" == vastdata/vastbase-vector* ]]; then
-              echo "Skipping image: $image"
-              continue
-            fi
-            echo "Processing image: $image"
+        sudo apt-get update
+        sudo apt-get install -y skopeo
 
-            # Generate a unique cache file name based on the image
-            # cache_file=$(echo $image | sha256sum | cut -d' ' -f1).tar
-
-            # # Check if image is in cache
-            # if [ -f /tmp/docker-cache/$cache_file ]; then
-            #   echo "Restoring cached image: $image"
-            #   docker load -i /tmp/docker-cache/$cache_file
-            # else
-              echo "Pulling image from DockerHub: $image"
-              docker pull $image
-              # echo "Saving image to cache: $image"
-              # docker save $image > /tmp/docker-cache/$cache_file
-            # fi
-
-            # Extract image tag (last part)
-            image_tag=$(echo $image | awk -F'/' '{print $NF}')
-
-            # Tag the image for ACR
-            acr_image="${{ secrets.ACR_REGISTRY }}/linjicong/$image_tag"
-            echo "Tagging image: $acr_image"
-            docker tag $image $acr_image
-
-            docker rmi $image
-
-            # Push the image to ACR
-            echo "Pushing image to ACR: $acr_image"
-            docker push $acr_image
-
-            docker rmi $acr_image
-          done
-        fi
+    - name: Enhanced image sync with parallel processing
+      run: |
+        images="${{ steps.parse_docker_compose.outputs.images_list }}"
+        
+        # 定义处理单个镜像的函数
+        process_image() {
+          local image=$1
+          
+          if [ -z "$image" ] || [ "$image" = "null" ]; then
+            echo "Skipping empty or null image."
+            return
+          fi
+          
+          # 跳过vastdata/vastbase-vector镜像
+          if [[ "$image" == vastdata/vastbase-vector* ]]; then
+            echo "Skipping image: $image"
+            return
+          fi
+          
+          echo "=== Processing image: $image ==="
+          
+          local image_tag=$(echo "$image" | awk -F'/' '{print $NF}')
+          local acr_image="${{ secrets.ACR_REGISTRY }}/linjicong/$image_tag"
+          
+          # 检查镜像是否存在
+          if skopeo inspect --creds="${{ secrets.ACR_USERNAME }}:${{ secrets.ACR_PASSWORD }}" "docker://$acr_image" > /dev/null 2>&1; then
+            echo "✅ Image already exists in ACR: $acr_image"
+            return
+          fi
+          
+          echo "🔄 Image not found, syncing: $image -> $acr_image"
+          
+          # 执行同步操作
+          if docker pull --platform linux/amd64 "$image" && \
+             docker tag "$image" "$acr_image" && \
+             docker push "$acr_image"; then
+            echo "✅ Successfully synced: $acr_image"
+            docker rmi "$image" "$acr_image" 2>/dev/null || true
+          else
+            echo "❌ Failed to sync: $image"
+          fi
+        }
+        
+        export -f process_image
+        export ACR_REGISTRY="${{ secrets.ACR_REGISTRY }}"
+        export ACR_USERNAME="${{ secrets.ACR_USERNAME }}"
+        export ACR_PASSWORD="${{ secrets.ACR_PASSWORD }}"
+        
+        # 并行处理镜像（限制并发数）
+        echo "$images" | tr ' ' '\n' | xargs -I {} -P 2 bash -c 'process_image "$@"' _ {}
+        
+        docker image prune -f
