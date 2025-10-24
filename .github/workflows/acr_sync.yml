@@ -25,8 +25,11 @@ jobs:
     - name: Parse docker-compose.yaml for images
       id: parse_docker_compose
       run: |
-        images=$(yq e '.services[].image' dify-repo/docker/docker-compose.yaml | tr '\n' ' ')
-        echo "Images: $images"
+        # 提取所有镜像并去重
+        images=$(yq e '.services[].image' dify-repo/docker/docker-compose.yaml | sort -u | tr '\n' ' ')
+        echo "Original images count: $(yq e '.services[].image' dify-repo/docker/docker-compose.yaml | wc -l)"
+        echo "Unique images count: $(echo "$images" | wc -w)"
+        echo "Unique Images: $images"
         echo "images_list=$images" >> $GITHUB_OUTPUT
 
     - name: Log in to Alibaba Cloud ACR
