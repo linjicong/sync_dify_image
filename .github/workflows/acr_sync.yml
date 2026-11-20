@@ -54,16 +54,34 @@ jobs:
             return
           fi
           
-          # 跳过vastdata/vastbase-vector镜像
-          if [[ "$image" == vastdata/vastbase-vector* ]]; then
-            echo "Skipping image: $image"
-            return
-          fi
+          # 跳过无法从公共仓库拉取的镜像：
+          # - vastdata/vastbase-vector: 需商业授权
+          # - langgenius/dify-knowledge-fs-api: Dify 企业版组件，未发布到公共镜像仓库
+          #   (https://github.com/langgenius/dify/issues/44719)
+          case "$image" in
+            vastdata/vastbase-vector*)
+              echo "Skipping image (commercial license required): $image"
+              return
+              ;;
+            langgenius/dify-knowledge-fs-api*)
+              echo "Skipping image (enterprise-only, not published on Docker Hub): $image"
+              return
+              ;;
+          esac
           
           echo "=== Processing image: $image ==="
           
-          local image_tag=$(echo "$image" | awk -F'/' '{print $NF}')
-          local acr_image="${{ secrets.ACR_REGISTRY }}/linjicong/$image_tag"
+          local acr_image
+          if [[ "$image" == *@sha256:* ]]; then
+            # docker tag/push 不接受 @sha256 摘要作为目标引用，
+            # 按摘要拉取后改写成 tag 安全的命名（sha256-<摘要前12位>）再推送
+            local base="${image%%@*}"
+            local digest="${image##*@sha256:}"
+            local repo_name="${base##*/}"
+            acr_image="${{ secrets.ACR_REGISTRY }}/linjicong/$repo_name:sha256-${digest:0:12}"
+          else
+            acr_image="${{ secrets.ACR_REGISTRY }}/linjicong/${image##*/}"
+          fi
           
           # 检查镜像是否存在
           if skopeo inspect --creds="${{ secrets.ACR_USERNAME }}:${{ secrets.ACR_PASSWORD }}" "docker://$acr_image" > /dev/null 2>&1; then
@@ -73,6 +91,19 @@ jobs:
           
           echo "🔄 Image not found, syncing: $image -> $acr_image"
           
+          # 摘要引用无法 docker tag，改用 skopeo 直接跨仓库复制（单平台 amd64）
+          if [[ "$image" == *@sha256:* ]]; then
+            if skopeo copy --override-os linux --override-arch amd64 \
+               --dest-creds "${{ secrets.ACR_USERNAME }}:${{ secrets.ACR_PASSWORD }}" \
+               "docker://$image" "docker://$acr_image"; then
+              echo "✅ Successfully synced: $acr_image"
+            else
+              echo "❌ Failed to sync: $image"
+              echo "$image" >> "$RUNNER_TEMP/failed_images.txt"
+            fi
+            return
+          fi
+
           # 执行同步操作
           if docker pull --platform linux/amd64 "$image" && \
              docker tag "$image" "$acr_image" && \
@@ -81,6 +112,7 @@ jobs:
             docker rmi "$image" "$acr_image" 2>/dev/null || true
           else
             echo "❌ Failed to sync: $image"
+            echo "$image" >> "$RUNNER_TEMP/failed_images.txt"
           fi
         }
         
@@ -91,5 +123,13 @@ jobs:
         
         # 并行处理镜像（限制并发数）
         echo "$images" | tr ' ' '\n' | xargs -I {} -P 2 bash -c 'process_image "$@"' _ {}
+        
+        # 汇总失败结果；有失败则让 Job 变红，避免问题被静默吞掉
+        if [ -f "$RUNNER_TEMP/failed_images.txt" ]; then
+          echo "::error::The following images failed to sync:"
+          cat "$RUNNER_TEMP/failed_images.txt"
+          docker image prune -f
+          exit 1
+        fi
         
         docker image prune -f
