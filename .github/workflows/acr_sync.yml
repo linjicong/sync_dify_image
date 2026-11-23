@@ -5,6 +5,12 @@ on:
     branches:
       - main
 
+# 同一时间只保留一条同步 run：新 push 自动取消仍在跑/排队的旧 run，
+# 避免连续改 ref 时多条 run 叠跑（叠 Docker Hub 限流、叠 ACR 推送）
+concurrency:
+  group: acr-sync
+  cancel-in-progress: true
+
 jobs:
   sync-images:
     runs-on: ubuntu-latest
@@ -100,7 +106,8 @@ jobs:
           # --format v2s2 转成经典 schema2 后控制台可正常显示。
           #
           # 源候选回退链：GitHub runner 的共享 IP 常被 Docker Hub 匿名限流
-          # （toomanyrequests；cr.weaviate.io 是 Docker Hub 的拉取代理，限流透传）。
+          # （toomanyrequests；cr.weaviate.io / downloads.unstructured.io 都是
+          #  Docker Hub 的拉取代理，限流与慢源问题透传）。
           # Docker Hub 系源失败时回退 mirror.gcr.io（Google 的 Docker Hub 缓存，免认证）；
           # 配置了 DOCKERHUB_USERNAME/DOCKERHUB_TOKEN secrets 时额外尝试带凭据的 docker.io 源。
           local candidates=("$image")
@@ -108,7 +115,7 @@ jobs:
             local first="${image%%/*}"
             if [[ "$first" == *.* || "$first" == *:* || "$first" == "localhost" ]]; then
               case "$first" in
-                docker.io|cr.weaviate.io)
+                docker.io|cr.weaviate.io|downloads.unstructured.io)
                   local rest="${image#*/}"
                   [ -n "${DOCKERHUB_USERNAME:-}" ] && [ -n "${DOCKERHUB_TOKEN:-}" ] && candidates+=("docker.io/$rest")
                   candidates+=("mirror.gcr.io/$rest")
@@ -132,16 +139,19 @@ jobs:
             if [[ "$src" == docker.io/* && -n "${DOCKERHUB_USERNAME:-}" && -n "${DOCKERHUB_TOKEN:-}" ]]; then
               src_opts+=(--src-creds "$DOCKERHUB_USERNAME:$DOCKERHUB_TOKEN")
             fi
-            if skopeo copy --override-os linux --override-arch amd64 \
+            # timeout 40m：skopeo 默认无读超时，多 GB 大镜像（如 unstructured-api）
+            # 源站慢或连接停滞时会无限挂起直到 job 硬超时；硬限后走下一个候选源
+            local t0=$SECONDS
+            if timeout 40m skopeo copy --override-os linux --override-arch amd64 \
                --format v2s2 --retry-times 3 \
                "${src_opts[@]}" \
                --dest-creds "${{ secrets.ACR_USERNAME }}:${{ secrets.ACR_PASSWORD }}" \
                "docker://$src" "docker://$acr_image"; then
-              echo "✅ Successfully synced: $acr_image (source: $src)"
+              echo "✅ Successfully synced: $acr_image (source: $src, $((SECONDS-t0))s)"
               synced=1
               break
             fi
-            echo "⚠️ Source failed, trying fallback: $src"
+            echo "⚠️ Source failed after $((SECONDS-t0))s, trying fallback: $src"
           done
           
           if [ "$synced" -eq 0 ]; then
